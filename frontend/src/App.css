@@ -1,0 +1,362 @@
+:root {
+    --void: #05060d;
+    --surface: #0a0c18;
+    --panel: rgba(10, 12, 28, 0.7);
+    --cyan: #00d4ff;
+    --cyan-dim: rgba(0, 212, 255, 0.15);
+    --red: #ff3b5c;
+    --red-dim: rgba(255, 59, 92, 0.15);
+    --white: #f0f4ff;
+    --white-dim: rgba(240, 244, 255, 0.1);
+    --gold: #ffd166;
+    --text-primary: #c8d8f0;
+    --text-muted: rgba(200, 216, 240, 0.4);
+    --border: rgba(0, 212, 255, 0.12);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body,
+#root {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--void);
+    color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+/* ─── CANVAS BACKGROUND ─────────────────────────── */
+#bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ─── GRID OVERLAY ──────────────────────────────── */
+.grid-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+}
+
+/* ─── AURORA BLOBS ──────────────────────────────── */
+.aurora {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.aurora-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.12;
+    animation: drift 20s ease-in-out infinite;
+}
+
+.aurora-blob:nth-child(1) {
+    width: 600px;
+    height: 600px;
+    background: #0048ff;
+    top: -200px;
+    left: -100px;
+    animation-duration: 25s;
+}
+
+.aurora-blob:nth-child(2) {
+    width: 500px;
+    height: 500px;
+    background: #00d4ff;
+    top: 20%;
+    right: -150px;
+    animation-duration: 18s;
+    animation-delay: -8s;
+}
+
+.aurora-blob:nth-child(3) {
+    width: 400px;
+    height: 400px;
+    background: #7b2fff;
+    bottom: -100px;
+    left: 30%;
+    animation-duration: 22s;
+    animation-delay: -4s;
+}
+
+@keyframes drift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(40px, -30px) scale(1.05); }
+    66% { transform: translate(-30px, 20px) scale(0.95); }
+}
+
+/* ─── LAYOUT ────────────────────────────────────── */
+.shell {
+    position: relative;
+    z-index: 10;
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    grid-template-rows: 100%;
+    overflow: hidden;
+}
+
+/* ─── LEFT PANEL: ORB ───────────────────────────── */
+.orb-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    padding: 2rem;
+    overflow: hidden;
+}
+
+.ruby-wordmark {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 2.8rem;
+    letter-spacing: 0.35em;
+    color: var(--white);
+    text-transform: uppercase;
+    position: relative;
+}
+
+.ruby-wordmark::after {
+    content: 'AI';
+    display: block;
+    font-size: 0.9rem;
+    letter-spacing: 0.6em;
+    color: var(--cyan);
+    font-weight: 400;
+    text-align: center;
+    margin-top: -0.2rem;
+}
+
+.status-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: rgba(0, 212, 255, 0.04);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    transition: all 0.4s ease;
+    backdrop-filter: blur(10px);
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #555;
+    transition: all 0.4s ease;
+}
+
+.orb-stage {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.orb-ground {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 30px;
+    background: radial-gradient(ellipse, rgba(0, 212, 255, 0.25), transparent 70%);
+    filter: blur(8px);
+    transition: all 0.5s ease;
+}
+
+.scan-ring, .scan-ring-2, .scan-ring-3 {
+    position: absolute;
+    border-radius: 50%;
+}
+
+.scan-ring {
+    width: 100%;
+    height: 100%;
+    border: 1px solid rgba(0, 212, 255, 0.08);
+    animation: spin-slow 30s linear infinite;
+}
+
+.scan-ring::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: var(--cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--cyan);
+}
+
+.scan-ring-2 {
+    width: 85%;
+    height: 85%;
+    border: 1px solid rgba(0, 212, 255, 0.06);
+    animation: spin-slow 20s linear infinite reverse;
+}
+
+.scan-ring-3 {
+    width: 70%;
+    height: 70%;
+    border: 1px dashed rgba(0, 212, 255, 0.08);
+    animation: spin-slow 15s linear infinite;
+}
+
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.pulse-ring {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 1.5px solid var(--cyan);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.orb-core {
+    position: relative;
+    z-index: 5;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.15), transparent 60%),
+                radial-gradient(circle at 65% 65%, rgba(0, 0, 0, 0.6), transparent 60%),
+                var(--cyan);
+    box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.3), 0 0 40px rgba(0, 212, 255, 0.4);
+}
+
+.state-Listening .orb-core {
+    transform: scale(1.12);
+    box-shadow: 0 0 60px rgba(0, 212, 255, 0.6), 0 0 120px rgba(0, 212, 255, 0.3);
+}
+
+.state-Speaking .orb-core {
+    transform: scale(1.08);
+    background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.2), transparent 60%),
+                radial-gradient(circle at 65% 65%, rgba(0, 0, 0, 0.5), transparent 60%),
+                var(--red);
+    box-shadow: 0 0 60px rgba(255, 59, 92, 0.5), 0 0 120px rgba(255, 59, 92, 0.25);
+}
+
+.state-Thinking .orb-core {
+    animation: orb-think 2.5s ease-in-out infinite;
+    background: #c8d8f0;
+}
+
+@keyframes pulse-out {
+    0% { transform: scale(0.8); opacity: 0.7; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+.chat-panel {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--border);
+    background: var(--panel);
+    backdrop-filter: blur(24px);
+    height: 100%;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.msg {
+    max-width: 82%;
+    padding: 0.9rem 1.3rem;
+    border-radius: 12px;
+    animation: msg-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.msg.ruby { align-self: flex-start; background: rgba(0, 212, 255, 0.08); border: 1px solid rgba(0, 212, 255, 0.2); }
+.msg.user { align-self: flex-end; background: rgba(200, 216, 240, 0.08); border: 1px solid rgba(200, 216, 240, 0.2); }
+
+.input-zone {
+    padding: 1.2rem 1.4rem;
+    border-top: 1px solid var(--border);
+}
+
+.input-row {
+    display: flex;
+    gap: 0.6rem;
+    background: rgba(0, 212, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.5rem 0.8rem;
+}
+
+#user-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+#start-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 6, 13, 0.96);
+    backdrop-filter: blur(20px);
+}
+
+.overlay-title { font-size: 4rem; letter-spacing: 0.5em; color: var(--white); text-transform: uppercase; }
+.overlay-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--cyan); }
+
+#init-btn {
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 0.9rem 3rem;
+    cursor: pointer;
+}

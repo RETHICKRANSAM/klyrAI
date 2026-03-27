@@ -105,12 +105,12 @@ def _record_activity_internal(activity_type: str, details: str):
     except Exception:
         pass
 
-@tool
+@tool(description=(
+        "Navigates to any website or searches on popular platforms (Amazon, Flipkart, Google, Netflix, etc.) in Google Chrome. "
+        "Use this for 'open website', 'go to site', or 'search on site' commands. "
+        "Examples: site_name='amazon', search_query='laptop' -> Searches Amazon for laptops."
+    ))
 def web_navigation(site_name: str, search_query: str = "") -> str:
-    """
-    Navigates to popular websites or searches for specific products on them in Google Chrome.
-    Examples: site_name='amazon', search_query='laptop' -> Searches Amazon for laptops.
-    """
     import urllib.parse
     
     # URL encoded query
@@ -134,11 +134,19 @@ def web_navigation(site_name: str, search_query: str = "") -> str:
         "makemytrip": {"base": "https://www.makemytrip.com", "search": "https://www.makemytrip.com/hotels/hotel-listing/?city="},
         "bookmyshow": {"base": "https://in.bookmyshow.com", "search": "https://in.bookmyshow.com/explore/movies-"},
         "myntra": {"base": "https://www.myntra.com", "search": "https://www.myntra.com/"},
+        "meesho": {"base": "https://www.meesho.com", "search": "https://www.meesho.com/search?q="},
+        "gmail": {"base": "https://mail.google.com", "search": "https://mail.google.com/mail/u/0/#search/"},
+        "calendar": {"base": "https://calendar.google.com", "search": "https://calendar.google.com"},
+        "meet": {"base": "https://meet.google.com", "search": "https://meet.google.com/new?"},
         "google": {"base": "https://www.google.com", "search": "https://www.google.com/search?q="},
         "youtube": {"base": "https://www.youtube.com", "search": "https://www.youtube.com/results?search_query="},
         "facebook": {"base": "https://www.facebook.com", "search": "https://www.facebook.com/search/top/?q="},
         "twitter": {"base": "https://www.twitter.com", "search": "https://twitter.com/search?q="},
         "reddit": {"base": "https://www.reddit.com", "search": "https://www.reddit.com/search/?q="},
+        "netflix": {"base": "https://www.netflix.com", "search": "https://www.netflix.com/search?q="},
+        "hotstar": {"base": "https://www.hotstar.com", "search": "https://www.hotstar.com/in/explore?search_query="},
+        "jiocinema": {"base": "https://www.jiocinema.com", "search": "https://www.jiocinema.com/search/"},
+        "primevideo": {"base": "https://www.primevideo.com", "search": "https://www.primevideo.com/search/ref=atv_sr_filter?phrase="},
     }
     
     clean_site = site_name.lower().strip()
@@ -150,23 +158,38 @@ def web_navigation(site_name: str, search_query: str = "") -> str:
         _record_activity_internal("Web Navigation", f"Direct URL: {url}")
         return f"Directing you to {url} in Google Chrome."
 
-    # Keyword associations
-    if "ticket" in clean_site or "book" in clean_site:
-        if "bus" in clean_site: clean_site = "redbus"
-        elif "train" in clean_site: clean_site = "irctc"
-        elif "movie" in clean_site: clean_site = "bookmyshow"
-        elif "hotel" in clean_site or "flight" in clean_site: clean_site = "makemytrip"
-    
-    if "product" in clean_site or "shop" in clean_site or "buy" in clean_site:
-        if "cloth" in clean_site: clean_site = "myntra"
-        elif "flipkart" in clean_site: clean_site = "flipkart"
-        else: clean_site = "amazon"
+    # Keyword associations - ONLY apply if clean_site is NOT already in mapping
+    if clean_site not in mapping:
+        # Check for specific site names INSIDE clean_site first
+        for key in mapping.keys():
+            if key in clean_site:
+                clean_site = key
+                break
+        
+        # If still not found, check generic keywords
+        if clean_site not in mapping:
+            if "ticket" in clean_site or "book" in clean_site:
+                if "bus" in clean_site: clean_site = "redbus"
+                elif "train" in clean_site: clean_site = "irctc"
+                elif "movie" in clean_site: clean_site = "bookmyshow"
+                elif "hotel" in clean_site or "flight" in clean_site: clean_site = "makemytrip"
+            
+            elif "product" in clean_site or "shop" in clean_site or "buy" in clean_site:
+                if "cloth" in clean_site: clean_site = "myntra"
+                elif "flipkart" in clean_site: clean_site = "flipkart"
+                else: clean_site = "amazon"
 
-    if "search" in clean_site or "find" in clean_site or "google" in clean_site:
-        clean_site = "google"
-    
-    if "video" in clean_site or "watch" in clean_site:
-        clean_site = "youtube"
+            elif "search" in clean_site or "find" in clean_site or "google" in clean_site:
+                clean_site = "google"
+            
+            elif "video" in clean_site or "watch" in clean_site:
+                # Prioritize other video platforms first if they are in search_query
+                sq = search_query.lower()
+                if "netflix" in sq: clean_site = "netflix"
+                elif "hotstar" in sq: clean_site = "hotstar"
+                elif "prime" in sq: clean_site = "primevideo"
+                elif "jio" in sq: clean_site = "jiocinema"
+                else: clean_site = "youtube"
 
     # --- Special Logic for "Official Website" or "Rates" ---
     is_official_request = "official" in clean_site or "official" in search_query.lower()
@@ -234,7 +257,7 @@ def open_system_app(app_name: str) -> str:
 
 @tool
 def pc_automation(command: str) -> str:
-    """Performs PC automation tasks like 'minimize_all', 'show_desktop', 'lock_pc', 'shutdown', 'restart'."""
+    """Performs PC tasks. Commands: 'minimize_all', 'show_desktop', 'lock_pc', 'shutdown', 'restart', 'dark' (for Dark Mode), 'light' (for Light Mode)."""
     try:
         command = command.lower().strip()
         if "minimize" in command or "desktop" in command:
@@ -252,6 +275,28 @@ def pc_automation(command: str) -> str:
         elif "restart" in command:
             os.system("shutdown /r /t 60")
             return "Restarting the PC in 60 seconds."
+        elif "dark" in command:
+            # Change Windows to Dark Mode
+            try:
+                import winreg
+                key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", 0, winreg.KEY_SET_VALUE)
+                winreg.SetValueEx(key, "AppsUseLightTheme", 0, winreg.REG_DWORD, 0)
+                winreg.SetValueEx(key, "SystemUsesLightTheme", 0, winreg.REG_DWORD, 0)
+                winreg.CloseKey(key)
+                return "Switched to Dark Mode."
+            except Exception as e:
+                return f"Could not set dark mode: {e}"
+        elif "light" in command:
+            # Change Windows to Light Mode
+            try:
+                import winreg
+                key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", 0, winreg.KEY_SET_VALUE)
+                winreg.SetValueEx(key, "AppsUseLightTheme", 0, winreg.REG_DWORD, 1)
+                winreg.SetValueEx(key, "SystemUsesLightTheme", 0, winreg.REG_DWORD, 1)
+                winreg.CloseKey(key)
+                return "Switched to Light Mode."
+            except Exception as e:
+                return f"Could not set light mode: {e}"
         return f"Unknown automation command: {command}"
     except Exception as e:
         return f"Automation Error: {str(e)}"
@@ -290,22 +335,19 @@ def file_operation(action: str, path: str, new_path: str = "") -> str:
         return f"File Op Error: {str(e)}"
 
 @tool
-def get_weather(city: str = "") -> str:
-    """Gets the current weather for a city or the user's current location."""
+def get_weather(city: str) -> str:
+    """Gets the current weather for a specific city. You MUST provide a city name."""
     try:
         import requests
         if not city:
-            g = geocoder.ip('me')
-            if not g.ok: return "Could not determine local city for weather."
-            lat, lon = g.latlng
-            city = g.city
-        else:
-            # Geocode city name
-            geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1&language=en&format=json"
-            res = requests.get(geo_url).json()
-            if not res.get('results'): return f"Could not find coordinates for {city}."
-            lat, lon = res['results'][0]['latitude'], res['results'][0]['longitude']
-            city = res['results'][0]['name']
+            return "Please provide a city name for the weather check."
+        
+        # Geocode city name
+        geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1&language=en&format=json"
+        res = requests.get(geo_url).json()
+        if not res.get('results'): return f"Could not find coordinates for {city}. Please check the spelling."
+        lat, lon = res['results'][0]['latitude'], res['results'][0]['longitude']
+        city = res['results'][0]['name']
 
         weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
         w_res = requests.get(weather_url).json()

@@ -2,50 +2,24 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.flakes/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual Environment
 .venv/
-venv/
-ENV/
-
-# IDEs
-.vscode/
-.idea/
-
-# Sensitive Data (REQUIRED TO SECURE KEYS)
 .env
-config/*.json
-*.json
-!frontend/templates/*.json
-keys.yaml
-alif_school.json
 
-# RubyBot Specific
-.cache/
-*.mp3
-*.wav
-ruby_rag/db/
-test_location.py
-requirements_deploy.txt
+# Environment
+.node/
+
+# Frontend
+frontend/node_modules/
+node_modules/
+dist/
+.DS_Store
+
+# Logs
 *.log
-err.log
-final_ruby.err
-server_log.txt
-user_history.txt
+backend/server_stdout.log
+backend/server_stderr.log
+backend/minimal_test.py
+
+# Temp
+temp_batch_stt/
+temp_assets/

@@ -16,6 +16,10 @@ from utiles.ruby_tools import (
     SwitchLanguageTool,
     GetLatestNewsTool,
     DuckDuckGoSearchTool,
+    SarvamBatchSTTTool,
+    TwilioReminderTool,
+    SummarizeTextTool,
+    GhostCursorTool,
 )
 from utiles.toolbox import (
     calculator,
@@ -65,6 +69,7 @@ class Ruby:
         
         # Combine default built-in tools with any extra tools provided
         self.tools = [
+                        web_navigation,                 # Navigate to websites (Chrome Focus)
                         YouTubeVideoPlayerTool(self),   # Tool for playing YouTube videos
                         GetAvailableLanguagesTool(self), # Tool to check supported languages
                         SwitchLanguageTool(self),       # Tool to switch active language
@@ -77,7 +82,6 @@ class Ruby:
                         list_open_windows,              # See open apps
                         open_system_app,                # Start apps
                         system_control,                 # Volume/System control
-                        web_navigation,                 # Navigate to websites (Chrome Focus)
                         get_system_health,              # Check CPU/Battery
                         run_terminal_command,           # Execute terminal commands
                         record_user_activity,           # Log user actions
@@ -87,6 +91,10 @@ class Ruby:
                         file_operation,                 # File management (List, Info, Copy)
                         get_weather,                    # Weather info
                         get_chrome_activity,            # NEW: Identify what is playing in Chrome/JioHotstar
+                        SarvamBatchSTTTool(),           # NEW: Batch Speech-to-Text
+                        TwilioReminderTool(),           # Twist Reminder
+                        SummarizeTextTool(),            # Text Summarization Tool
+                        GhostCursorTool(),              # PyAutoGUI Ghost Cursor Action
                     ] + tools
 
         # Initialize TTS (Text-to-Speech) — uses Edge-TTS (FREE, no key)
@@ -107,7 +115,7 @@ class Ruby:
         
         # Create the brain (Groq/Gemini/DuckDuckGo — all free options)
         self.model = get_brain()
-        print(f"✅ Ruby Brain loaded: {type(self.model).__name__}")
+        print(f"✅ Klyra Brain loaded: {type(self.model).__name__}")
 
     def _run_tool(self, user_lower, user_input):
         return None
@@ -222,15 +230,15 @@ class Ruby:
         except ImportError:
             has_keyboard = False
             
-        print("\n--- Ruby is in Standby Mode ---")
-        print("Say 'HELLO RUBY' to start or press 'Ctrl+Shift+R'")
+        print("\n--- Klyra is in Standby Mode ---")
+        print("Say 'HELLO KLYRA' to start or press 'Ctrl+Shift+R'")
         
         is_active = False
 
         def set_active():
             nonlocal is_active
             is_active = True
-            print("\n[Shortcut Triggered] Ruby is now Listening!")
+            print("\n[Shortcut Triggered] Klyra is now Listening!")
             self.tts.text_to_speech("How can I help you?")
 
         if has_keyboard:
@@ -241,26 +249,26 @@ class Ruby:
                 if not is_active:
                     self.ruby_state = "Standby"
                     transcript = self.listen()
-                    if transcript and "hello ruby" in transcript.lower():
+                    if transcript and "hello klyra" in transcript.lower():
                         is_active = True
-                        print("--- Ruby Activated ---")
-                        self.tts.text_to_speech("Hello! I am online. How can I assist you today?")
+                        print("--- Klyra Activated ---")
+                        self.tts.text_to_speech("Hello! I am Klyra. How can I assist you today?")
                     continue
 
                 user_input = self.listen()
                 if user_input:
                     user_lower = user_input.lower()
                     
-                    if "bye ruby" in user_lower or "go to sleep" in user_lower:
-                        print("--- Ruby Going to Sleep ---")
-                        self.tts.text_to_speech("Goodbye! Say hello ruby whenever you need me.")
+                    if "bye klyra" in user_lower or "go to sleep" in user_lower:
+                        print("--- Klyra Going to Sleep ---")
+                        self.tts.text_to_speech("Goodbye! Say hello klyra whenever you need me.")
                         is_active = False
                         continue
                         
                     self.speak(user_input)
                     
             except KeyboardInterrupt:
-                print("\nShutting down Ruby...")
+                print("\nShutting down Klyra...")
                 break
             except Exception as e:
                 print(f"Error in main loop: {e}")

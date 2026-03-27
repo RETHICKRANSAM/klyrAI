@@ -13,11 +13,11 @@ start "RubyBot Server" cmd /k "python frontend/web_server.py"
 
 :: Wait for server to initialize
 echo ⏳ Waiting for server to start...
-timeout /t 5 /nobreak > nul
+ping 127.0.0.1 -n 6 > nul
 
 :: Open Chrome
 echo 🌐 Opening Chrome...
-start chrome "http://localhost:5001"
+start chrome "http://127.0.0.1:5001"
 
 echo.
 echo ✅ RubyBot is running! 

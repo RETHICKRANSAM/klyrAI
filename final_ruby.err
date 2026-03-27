@@ -1,0 +1,230 @@
+Server initialized for threading.
+Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://172.20.44.25:5001
+Press CTRL+C to quit
+9Usa8Kud4dKRt2kVAAAA: Sending packet OPEN data {'sid': '9Usa8Kud4dKRt2kVAAAA', 'upgrades': ['websocket'], 'pingTimeout': 20000, 'pingInterval': 25000}
+127.0.0.1 - - [21/Feb/2026 18:24:36] "GET /socket.io/?EIO=4&transport=polling&t=Po0H2Zj HTTP/1.1" 200 -
+9Usa8Kud4dKRt2kVAAAA: Received packet MESSAGE data 0
+emitting event "state_change" to zHB4pVmGSk0NrE7YAAAB [/]
+9Usa8Kud4dKRt2kVAAAA: Sending packet MESSAGE data 2["state_change",{"state":"Idle"}]
+9Usa8Kud4dKRt2kVAAAA: Sending packet MESSAGE data 0{"sid":"zHB4pVmGSk0NrE7YAAAB"}
+127.0.0.1 - - [21/Feb/2026 18:24:37] "POST /socket.io/?EIO=4&transport=polling&t=Po0H2ew&sid=9Usa8Kud4dKRt2kVAAAA HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 18:24:37] "GET /socket.io/?EIO=4&transport=polling&t=Po0H2e-&sid=9Usa8Kud4dKRt2kVAAAA HTTP/1.1" 200 -
+9Usa8Kud4dKRt2kVAAAA: Received request to upgrade to websocket
+127.0.0.1 - - [21/Feb/2026 18:24:37] "GET /socket.io/?EIO=4&transport=polling&t=Po0H2k2&sid=9Usa8Kud4dKRt2kVAAAA HTTP/1.1" 200 -
+9Usa8Kud4dKRt2kVAAAA: Upgrade to websocket successful
+9Usa8Kud4dKRt2kVAAAA: Sending packet PING data None
+9Usa8Kud4dKRt2kVAAAA: Received packet PONG data 
+9Usa8Kud4dKRt2kVAAAA: Sending packet PING data None
+9Usa8Kud4dKRt2kVAAAA: Received packet PONG data 
+127.0.0.1 - - [21/Feb/2026 18:25:31] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 18:25:31] "GET / HTTP/1.1" 200 -
+5fc1xJlzZtYQjrwvAAAC: Sending packet OPEN data {'sid': '5fc1xJlzZtYQjrwvAAAC', 'upgrades': ['websocket'], 'pingTimeout': 20000, 'pingInterval': 25000}
+127.0.0.1 - - [21/Feb/2026 18:25:32] "GET /socket.io/?EIO=4&transport=polling&t=Po0HG6P HTTP/1.1" 200 -
+5fc1xJlzZtYQjrwvAAAC: Received packet MESSAGE data 0
+emitting event "state_change" to jtmaqcJJgweMcOlTAAAE [/]
+5fc1xJlzZtYQjrwvAAAC: Received request to upgrade to websocket
+127.0.0.1 - - [21/Feb/2026 18:25:32] "GET /socket.io/?EIO=4&transport=polling&t=Po0HG9Z&sid=5fc1xJlzZtYQjrwvAAAC HTTP/1.1" 200 -
+87OnvvhENuHEvq4VAAAD: Sending packet OPEN data {'sid': '87OnvvhENuHEvq4VAAAD', 'upgrades': ['websocket'], 'pingTimeout': 20000, 'pingInterval': 25000}
+5fc1xJlzZtYQjrwvAAAC: Sending packet MESSAGE data 2["state_change",{"state":"Idle"}]
+127.0.0.1 - - [21/Feb/2026 18:25:32] "GET /socket.io/?EIO=4&transport=polling&t=Po0HG9g HTTP/1.1" 200 -
+5fc1xJlzZtYQjrwvAAAC: Sending packet MESSAGE data 0{"sid":"jtmaqcJJgweMcOlTAAAE"}
+127.0.0.1 - - [21/Feb/2026 18:25:32] "POST /socket.io/?EIO=4&transport=polling&t=Po0HG9W&sid=5fc1xJlzZtYQjrwvAAAC HTTP/1.1" 200 -
+87OnvvhENuHEvq4VAAAD: Received packet MESSAGE data 0
+emitting event "state_change" to ZsntaYSaiea25YzLAAAF [/]
+87OnvvhENuHEvq4VAAAD: Sending packet MESSAGE data 2["state_change",{"state":"Idle"}]
+87OnvvhENuHEvq4VAAAD: Sending packet MESSAGE data 0{"sid":"ZsntaYSaiea25YzLAAAF"}
+127.0.0.1 - - [21/Feb/2026 18:25:32] "POST /socket.io/?EIO=4&transport=polling&t=Po0HGEy&sid=87OnvvhENuHEvq4VAAAD HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 18:25:32] "GET /socket.io/?EIO=4&transport=polling&t=Po0HGEr&sid=5fc1xJlzZtYQjrwvAAAC HTTP/1.1" 200 -
+87OnvvhENuHEvq4VAAAD: Received request to upgrade to websocket
+127.0.0.1 - - [21/Feb/2026 18:25:32] "GET /socket.io/?EIO=4&transport=polling&t=Po0HGE-&sid=87OnvvhENuHEvq4VAAAD HTTP/1.1" 200 -
+5fc1xJlzZtYQjrwvAAAC: Upgrade to websocket successful
+87OnvvhENuHEvq4VAAAD: Upgrade to websocket successful
+87OnvvhENuHEvq4VAAAD: Received packet MESSAGE data 2["send_text",{"text":"go to youtube"}]
+received event "send_text" from ZsntaYSaiea25YzLAAAF [/]
+emitting event "new_message" to all [/]
+9Usa8Kud4dKRt2kVAAAA: Sending packet MESSAGE data 2["new_message",{"sender":"User","text":"go to youtube"}]
+5fc1xJlzZtYQjrwvAAAC: Sending packet MESSAGE data 2["new_message",{"sender":"User","text":"go to youtube"}]
+87OnvvhENuHEvq4VAAAD: Sending packet MESSAGE data 2["new_message",{"sender":"User","text":"go to youtube"}]
+emitting event "state_change" to all [/]
+9Usa8Kud4dKRt2kVAAAA: Sending packet MESSAGE data 2["state_change",{"state":"Thinking"}]
+5fc1xJlzZtYQjrwvAAAC: Sending packet MESSAGE data 2["state_change",{"state":"Thinking"}]
+87OnvvhENuHEvq4VAAAD: Sending packet MESSAGE data 2["state_change",{"state":"Thinking"}]
+Traceback (most recent call last):
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\frontend\web_server.py", line 72, in handle_text
+    response = ruby.speak(text)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\frontend\web_server.py", line 40, in web_speak
+    res = original_speak(user_input)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\ruby\ruby_mainframe.py", line 138, in speak
+    response = self.model.invoke(self.chat_history)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langgraph\pregel\main.py", line 3068, in invoke
+    for chunk in self.stream(
+                 ^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langgraph\pregel\main.py", line 2643, in stream
+    for _ in runner.tick(
+             ^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langgraph\pregel\_runner.py", line 167, in tick
+    run_with_retry(
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langgraph\pregel\_retry.py", line 42, in run_with_retry
+    return task.proc.invoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langgraph\_internal\_runnable.py", line 656, in invoke
+    input = context.run(step.invoke, input, config, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langgraph\_internal\_runnable.py", line 400, in invoke
+    ret = self.func(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langchain\agents\factory.py", line 1131, in model_node
+    response = _execute_model_sync(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langchain\agents\factory.py", line 1102, in _execute_model_sync
+    output = model_.invoke(messages)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langchain_core\runnables\base.py", line 5695, in invoke
+    return self.bound.invoke(
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 402, in invoke
+    self.generate_prompt(
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1123, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 933, in generate
+    self._generate_with_cache(
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1235, in _generate_with_cache
+    result = self._generate(
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langchain_openai\chat_models\base.py", line 1380, in _generate
+    raise e
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\langchain_openai\chat_models\base.py", line 1375, in _generate
+    raw_response = self.client.with_raw_response.create(**payload)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\openai\_legacy_response.py", line 364, in wrapped
+    return cast(LegacyAPIResponse[R], func(*args, **kwargs))
+                                      ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sakthi\Desktop\RUBYBOT\.venv\Lib\site-packages\openai\_base_client.py", line 1047, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+During task with name 'model' and id 'df01d6fa-2aff-9afe-5762-30ebf6846bf5'
+emitting event "new_message" to all [/]
+9Usa8Kud4dKRt2kVAAAA: Sending packet MESSAGE data 2["new_message",{"sender":"Ruby","text":"Ruby Core Error: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"}]
+5fc1xJlzZtYQjrwvAAAC: Sending packet MESSAGE data 2["new_message",{"sender":"Ruby","text":"Ruby Core Error: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"}]
+87OnvvhENuHEvq4VAAAD: Sending packet MESSAGE data 2["new_message",{"sender":"Ruby","text":"Ruby Core Error: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"}]
+9Usa8Kud4dKRt2kVAAAA: Sending packet PING data None
+9Usa8Kud4dKRt2kVAAAA: Received packet PONG data 
+5fc1xJlzZtYQjrwvAAAC: Sending packet PING data None
+5fc1xJlzZtYQjrwvAAAC: Received packet PONG data 
+87OnvvhENuHEvq4VAAAD: Sending packet PING data None
+87OnvvhENuHEvq4VAAAD: Received packet PONG data 
+9Usa8Kud4dKRt2kVAAAA: Sending packet PING data None
+9Usa8Kud4dKRt2kVAAAA: Received packet PONG data 
+5fc1xJlzZtYQjrwvAAAC: Sending packet PING data None
+5fc1xJlzZtYQjrwvAAAC: Received packet PONG data 
+87OnvvhENuHEvq4VAAAD: Sending packet PING data None
+87OnvvhENuHEvq4VAAAD: Received packet PONG data 
+9Usa8Kud4dKRt2kVAAAA: Sending packet PING data None
+9Usa8Kud4dKRt2kVAAAA: Received packet PONG data 
+5fc1xJlzZtYQjrwvAAAC: Sending packet PING data None
+5fc1xJlzZtYQjrwvAAAC: Received packet PONG data 
+87OnvvhENuHEvq4VAAAD: Sending packet PING data None
+87OnvvhENuHEvq4VAAAD: Received packet PONG data 
+127.0.0.1 - - [21/Feb/2026 18:27:04] "GET /socket.io/?EIO=4&transport=websocket&sid=87OnvvhENuHEvq4VAAAD HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 18:27:05] "GET /socket.io/?EIO=4&transport=websocket&sid=5fc1xJlzZtYQjrwvAAAC HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 18:27:05] "GET /socket.io/?EIO=4&transport=websocket&sid=9Usa8Kud4dKRt2kVAAAA HTTP/1.1" 200 -
+d7vKdaJTmODpOx2rAAAG: Sending packet OPEN data {'sid': 'd7vKdaJTmODpOx2rAAAG', 'upgrades': ['websocket'], 'pingTimeout': 20000, 'pingInterval': 25000}
+127.0.0.1 - - [21/Feb/2026 18:33:22] "GET /socket.io/?EIO=4&transport=polling&t=Po0J2Kg HTTP/1.1" 200 -
+aqc6CSyeLLaUG6DLAAAH: Sending packet OPEN data {'sid': 'aqc6CSyeLLaUG6DLAAAH', 'upgrades': ['websocket'], 'pingTimeout': 20000, 'pingInterval': 25000}
+127.0.0.1 - - [21/Feb/2026 18:33:34] "GET /socket.io/?EIO=4&transport=polling&t=Po0J3tW HTTP/1.1" 200 -
+d7vKdaJTmODpOx2rAAAG: Received request to upgrade to websocket
+d7vKdaJTmODpOx2rAAAG: Received packet MESSAGE data 0
+emitting event "state_change" to YVP5paoPSagiKQ8oAAAI [/]
+d7vKdaJTmODpOx2rAAAG: Sending packet MESSAGE data 2["state_change",{"state":"Thinking"}]
+127.0.0.1 - - [21/Feb/2026 18:33:34] "GET /socket.io/?EIO=4&transport=polling&t=Po0J41L&sid=d7vKdaJTmODpOx2rAAAG HTTP/1.1" 200 -
+d7vKdaJTmODpOx2rAAAG: Sending packet MESSAGE data 0{"sid":"YVP5paoPSagiKQ8oAAAI"}
+127.0.0.1 - - [21/Feb/2026 18:33:34] "POST /socket.io/?EIO=4&transport=polling&t=Po0J41J&sid=d7vKdaJTmODpOx2rAAAG HTTP/1.1" 200 -
+d7vKdaJTmODpOx2rAAAG: Upgrade to websocket successful
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet OPEN data {'sid': 'bqIrXGL9c9Z6oe4qAAAJ', 'upgrades': ['websocket'], 'pingTimeout': 20000, 'pingInterval': 25000}
+127.0.0.1 - - [21/Feb/2026 18:33:35] "GET /socket.io/?EIO=4&transport=polling&t=Po0J51Q HTTP/1.1" 200 -
+aqc6CSyeLLaUG6DLAAAH: Received packet MESSAGE data 0
+emitting event "state_change" to WPh0essFiv2jZRKKAAAK [/]
+aqc6CSyeLLaUG6DLAAAH: Received request to upgrade to websocket
+aqc6CSyeLLaUG6DLAAAH: Sending packet MESSAGE data 2["state_change",{"state":"Thinking"}]
+aqc6CSyeLLaUG6DLAAAH: Sending packet MESSAGE data 0{"sid":"WPh0essFiv2jZRKKAAAK"}
+127.0.0.1 - - [21/Feb/2026 18:33:39] "POST /socket.io/?EIO=4&transport=polling&t=Po0J75y&sid=aqc6CSyeLLaUG6DLAAAH HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 18:33:40] "GET /socket.io/?EIO=4&transport=polling&t=Po0J76K&sid=aqc6CSyeLLaUG6DLAAAH HTTP/1.1" 200 -
+aqc6CSyeLLaUG6DLAAAH: Upgrade to websocket successful
+bqIrXGL9c9Z6oe4qAAAJ: Received packet MESSAGE data 0
+emitting event "state_change" to GCAbiL7n_bTO3d9rAAAL [/]
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet MESSAGE data 2["state_change",{"state":"Thinking"}]
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet MESSAGE data 0{"sid":"GCAbiL7n_bTO3d9rAAAL"}
+127.0.0.1 - - [21/Feb/2026 18:33:44] "POST /socket.io/?EIO=4&transport=polling&t=Po0J75S&sid=bqIrXGL9c9Z6oe4qAAAJ HTTP/1.1" 200 -
+bqIrXGL9c9Z6oe4qAAAJ: Received request to upgrade to websocket
+127.0.0.1 - - [21/Feb/2026 18:33:47] "GET /socket.io/?EIO=4&transport=polling&t=Po0J8uw&sid=bqIrXGL9c9Z6oe4qAAAJ HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 18:33:47] "GET /socket.io/?EIO=4&transport=polling&t=Po0J92C&sid=bqIrXGL9c9Z6oe4qAAAJ HTTP/1.1" 200 -
+bqIrXGL9c9Z6oe4qAAAJ: Upgrade to websocket successful
+d7vKdaJTmODpOx2rAAAG: Sending packet PING data None
+d7vKdaJTmODpOx2rAAAG: Received packet PONG data 
+aqc6CSyeLLaUG6DLAAAH: Sending packet PING data None
+aqc6CSyeLLaUG6DLAAAH: Received packet PONG data 
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet PING data None
+bqIrXGL9c9Z6oe4qAAAJ: Received packet PONG data 
+d7vKdaJTmODpOx2rAAAG: Sending packet PING data None
+d7vKdaJTmODpOx2rAAAG: Received packet PONG data 
+aqc6CSyeLLaUG6DLAAAH: Sending packet PING data None
+aqc6CSyeLLaUG6DLAAAH: Received packet PONG data 
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet PING data None
+bqIrXGL9c9Z6oe4qAAAJ: Received packet PONG data 
+d7vKdaJTmODpOx2rAAAG: Sending packet PING data None
+d7vKdaJTmODpOx2rAAAG: Received packet PONG data 
+aqc6CSyeLLaUG6DLAAAH: Sending packet PING data None
+aqc6CSyeLLaUG6DLAAAH: Received packet PONG data 
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet PING data None
+bqIrXGL9c9Z6oe4qAAAJ: Received packet PONG data 
+d7vKdaJTmODpOx2rAAAG: Sending packet PING data None
+d7vKdaJTmODpOx2rAAAG: Received packet PONG data 
+aqc6CSyeLLaUG6DLAAAH: Sending packet PING data None
+aqc6CSyeLLaUG6DLAAAH: Received packet PONG data 
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet PING data None
+bqIrXGL9c9Z6oe4qAAAJ: Received packet PONG data 
+d7vKdaJTmODpOx2rAAAG: Sending packet PING data None
+d7vKdaJTmODpOx2rAAAG: Received packet PONG data 
+aqc6CSyeLLaUG6DLAAAH: Sending packet PING data None
+aqc6CSyeLLaUG6DLAAAH: Received packet PONG data 
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet PING data None
+bqIrXGL9c9Z6oe4qAAAJ: Received packet PONG data 
+d7vKdaJTmODpOx2rAAAG: Sending packet PING data None
+d7vKdaJTmODpOx2rAAAG: Received packet PONG data 
+aqc6CSyeLLaUG6DLAAAH: Sending packet PING data None
+aqc6CSyeLLaUG6DLAAAH: Received packet PONG data 
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet PING data None
+bqIrXGL9c9Z6oe4qAAAJ: Received packet PONG data 
+d7vKdaJTmODpOx2rAAAG: Sending packet PING data None
+d7vKdaJTmODpOx2rAAAG: Received packet PONG data 
+aqc6CSyeLLaUG6DLAAAH: Sending packet PING data None
+aqc6CSyeLLaUG6DLAAAH: Received packet PONG data 
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet PING data None
+bqIrXGL9c9Z6oe4qAAAJ: Received packet PONG data 
+d7vKdaJTmODpOx2rAAAG: Sending packet PING data None
+d7vKdaJTmODpOx2rAAAG: Received packet PONG data 
+aqc6CSyeLLaUG6DLAAAH: Sending packet PING data None
+aqc6CSyeLLaUG6DLAAAH: Received packet PONG data 
+bqIrXGL9c9Z6oe4qAAAJ: Sending packet PING data None
+bqIrXGL9c9Z6oe4qAAAJ: Received packet PONG data 
+d7vKdaJTmODpOx2rAAAG: Sending packet PING data None
+d7vKdaJTmODpOx2rAAAG: Received packet PONG data 
+aqc6CSyeLLaUG6DLAAAH: Sending packet PING data None
+aqc6CSyeLLaUG6DLAAAH: Received packet PONG data 

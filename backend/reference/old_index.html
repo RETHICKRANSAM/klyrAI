@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klyra Voice Assistant</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        :root {
+            --void: #05060d;
+            --surface: #0a0c18;
+            --panel: rgba(10, 12, 28, 0.7);
+            --cyan: #00d4ff;
+            --cyan-dim: rgba(0, 212, 255, 0.15);
+            --red: #ff3b5c;
+            --red-dim: rgba(255, 59, 92, 0.15);
+            --white: #f0f4ff;
+            --white-dim: rgba(240, 244, 255, 0.1);
+            --gold: #ffd166;
+            --text-primary: #c8d8f0;
+            --text-muted: rgba(200, 216, 240, 0.4);
+            --border: rgba(0, 212, 255, 0.12);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--void);
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* ─── CANVAS BACKGROUND ─────────────────────────── */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ─── GRID OVERLAY ──────────────────────────────── */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+        }
+
+        /* ─── AURORA BLOBS ──────────────────────────────── */
+        .aurora {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .aurora-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.12;
+            animation: drift 20s ease-in-out infinite;
+        }
+
+        .aurora-blob:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: #0048ff;
+            top: -200px;
+            left: -100px;
+            animation-duration: 25s;
+        }
+
+        .aurora-blob:nth-child(2) {
+            width: 500px;
+            height: 500px;
+            background: #00d4ff;
+            top: 20%;
+            right: -150px;
+            animation-duration: 18s;
+            animation-delay: -8s;
+        }
+
+        .aurora-blob:nth-child(3) {
+            width: 400px;
+            height: 400px;
+            background: #7b2fff;
+            bottom: -100px;
+            left: 30%;
+            animation-duration: 22s;
+            animation-delay: -4s;
+        }
+
+        @keyframes drift {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(40px, -30px) scale(1.05);
+            }
+
+            66% {
+                transform: translate(-30px, 20px) scale(0.95);
+            }
+        }
+
+        /* ─── LAYOUT ────────────────────────────────────── */
+        .shell {
+            position: relative;
+            z-index: 10;
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            grid-template-rows: 100%;
+            overflow: hidden;
+        }
+
+        /* ─── LEFT PANEL: ORB ───────────────────────────── */
+        .orb-panel {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2.5rem;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+
+
+        .ruby-wordmark {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 2.8rem;
+            letter-spacing: 0.35em;
+            color: var(--white);
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .ruby-wordmark::after {
+            content: 'AI';
+            display: block;
+            font-size: 0.9rem;
+            letter-spacing: 0.6em;
+            color: var(--cyan);
+            font-weight: 400;
+            text-align: center;
+            margin-top: -0.2rem;
+        }
+
+        /* Status Pill */
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.45rem 1.2rem;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            background: rgba(0, 212, 255, 0.04);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #555;
+            transition: all 0.4s ease;
+            box-shadow: 0 0 0 0 transparent;
+        }
+
+        /* Orb Stage */
+        .orb-stage {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Ground glow */
+        .orb-ground {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 30px;
+            background: radial-gradient(ellipse, rgba(0, 212, 255, 0.25), transparent 70%);
+            filter: blur(8px);
+            transition: all 0.5s ease;
+        }
+
+        /* Outer scan ring */
+        .scan-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(0, 212, 255, 0.08);
+            border-radius: 50%;
+            animation: spin-slow 30s linear infinite;
+        }
+
+        .scan-ring::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--cyan);
+        }
+
+        .scan-ring-2 {
+            position: absolute;
+            width: 85%;
+            height: 85%;
+            border: 1px solid rgba(0, 212, 255, 0.06);
+            border-radius: 50%;
+            animation: spin-slow 20s linear infinite reverse;
+        }
+
+        .scan-ring-3 {
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            border: 1px dashed rgba(0, 212, 255, 0.08);
+            border-radius: 50%;
+            animation: spin-slow 15s linear infinite;
+        }
+
+        @keyframes spin-slow {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Pulse ring (state-based) */
+        .pulse-ring {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 1.5px solid var(--cyan);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Core Orb */
+        .orb-core {
+            position: relative;
+            z-index: 5;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+
+            background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.15), transparent 60%),
+                radial-gradient(circle at 65% 65%, rgba(0, 0, 0, 0.6), transparent 60%),
+                var(--cyan);
+            box-shadow:
+                0 0 0 1px rgba(0, 212, 255, 0.3),
+                0 0 40px rgba(0, 212, 255, 0.4),
+                0 0 80px rgba(0, 212, 255, 0.2),
+                inset 0 0 30px rgba(255, 255, 255, 0.05);
+        }
+
+        /* Orb inner shimmer */
+        .orb-core::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 20%;
+            width: 35%;
+            height: 25%;
+            background: radial-gradient(ellipse, rgba(255, 255, 255, 0.4), transparent);
+            border-radius: 50%;
+            filter: blur(4px);
+        }
+
+        /* Orb icon */
+        .orb-icon {
+            position: absolute;
+            z-index: 6;
+            opacity: 0.7;
+            pointer-events: none;
+            transition: all 0.4s ease;
+        }
+
+        .orb-icon svg {
+            width: 36px;
+            height: 36px;
+            color: white;
+        }
+
+        /* ─── STATE: LISTENING ──────────────────────────── */
+        .state-Listening .orb-core {
+            transform: scale(1.12);
+            background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.2), transparent 60%),
+                radial-gradient(circle at 65% 65%, rgba(0, 0, 0, 0.5), transparent 60%),
+                var(--cyan);
+            box-shadow:
+                0 0 0 2px rgba(0, 212, 255, 0.5),
+                0 0 60px rgba(0, 212, 255, 0.6),
+                0 0 120px rgba(0, 212, 255, 0.3),
+                inset 0 0 40px rgba(255, 255, 255, 0.08);
+        }
+
+        .state-Listening .pulse-ring {
+            animation: pulse-out 1.8s ease-out infinite;
+            border-color: var(--cyan);
+        }
+
+        .state-Listening .status-dot {
+            background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan);
+        }
+
+        .state-Listening .orb-ground {
+            background: radial-gradient(ellipse, rgba(0, 212, 255, 0.5), transparent 70%);
+        }
+
+        .state-Listening .scan-ring {
+            border-color: rgba(0, 212, 255, 0.25);
+        }
+
+        /* ─── STATE: SPEAKING ───────────────────────────── */
+        .state-Speaking .orb-core {
+            transform: scale(1.08);
+            background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.2), transparent 60%),
+                radial-gradient(circle at 65% 65%, rgba(0, 0, 0, 0.5), transparent 60%),
+                var(--red);
+            box-shadow:
+                0 0 0 2px rgba(255, 59, 92, 0.5),
+                0 0 60px rgba(255, 59, 92, 0.5),
+                0 0 120px rgba(255, 59, 92, 0.25),
+                inset 0 0 40px rgba(255, 255, 255, 0.06);
+        }
+
+        .state-Speaking .pulse-ring {
+            animation: pulse-out 1.2s ease-out infinite;
+            border-color: var(--red);
+        }
+
+        .state-Speaking .status-dot {
+            background: var(--red);
+            box-shadow: 0 0 8px var(--red);
+            animation: blink 0.8s ease-in-out infinite;
+        }
+
+        .state-Speaking .orb-ground {
+            background: radial-gradient(ellipse, rgba(255, 59, 92, 0.4), transparent 70%);
+        }
+
+        .state-Speaking .scan-ring {
+            border-color: rgba(255, 59, 92, 0.15);
+            animation-duration: 8s;
+        }
+
+        .state-Speaking .scan-ring-2 {
+            border-color: rgba(255, 59, 92, 0.1);
+        }
+
+        /* ─── STATE: THINKING ───────────────────────────── */
+        .state-Thinking .orb-core {
+            transform: scale(1.06);
+            background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.3), transparent 60%),
+                radial-gradient(circle at 65% 65%, rgba(0, 0, 0, 0.4), transparent 60%),
+                #c8d8f0;
+            box-shadow:
+                0 0 0 2px rgba(200, 216, 240, 0.4),
+                0 0 60px rgba(200, 216, 240, 0.4),
+                0 0 120px rgba(200, 216, 240, 0.15),
+                inset 0 0 40px rgba(255, 255, 255, 0.1);
+            animation: orb-think 2.5s ease-in-out infinite;
+        }
+
+        .state-Thinking .pulse-ring {
+            animation: pulse-out 2.5s ease-out infinite;
+            border-color: var(--white);
+        }
+
+        .state-Thinking .status-dot {
+            background: var(--white);
+            box-shadow: 0 0 8px var(--white);
+        }
+
+        .state-Thinking .orb-ground {
+            background: radial-gradient(ellipse, rgba(200, 216, 240, 0.35), transparent 70%);
+        }
+
+        @keyframes orb-think {
+
+            0%,
+            100% {
+                transform: scale(1.06) translateY(0);
+            }
+
+            50% {
+                transform: scale(1.06) translateY(-10px);
+            }
+        }
+
+        /* ─── PULSE & BLINK ANIMATIONS ──────────────────── */
+        @keyframes pulse-out {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* Waveform bars (Speaking state) */
+        .waveform {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 40px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .wave-bar {
+            width: 4px;
+            background: var(--red);
+            border-radius: 2px;
+            animation: wave-anim 0.8s ease-in-out infinite alternate;
+        }
+
+        .wave-bar:nth-child(1) {
+            height: 10px;
+            animation-delay: 0s;
+        }
+
+        .wave-bar:nth-child(2) {
+            height: 20px;
+            animation-delay: 0.1s;
+        }
+
+        .wave-bar:nth-child(3) {
+            height: 30px;
+            animation-delay: 0.2s;
+        }
+
+        .wave-bar:nth-child(4) {
+            height: 38px;
+            animation-delay: 0.3s;
+        }
+
+        .wave-bar:nth-child(5) {
+            height: 28px;
+            animation-delay: 0.15s;
+        }
+
+        .wave-bar:nth-child(6) {
+            height: 18px;
+            animation-delay: 0.05s;
+        }
+
+        .wave-bar:nth-child(7) {
+            height: 8px;
+            animation-delay: 0.25s;
+        }
+
+        @keyframes wave-anim {
+            from {
+                transform: scaleY(0.3);
+                opacity: 0.5;
+            }
+
+            to {
+                transform: scaleY(1);
+                opacity: 1;
+            }
+        }
+
+        .state-Speaking .waveform {
+            opacity: 1;
+        }
+
+        .state-Speaking .waveform .wave-bar {
+            background: var(--red);
+        }
+
+        .state-Listening .waveform {
+            opacity: 1;
+        }
+
+        .state-Listening .waveform .wave-bar {
+            background: var(--cyan);
+            animation-duration: 0.5s;
+        }
+
+        /* Hint text */
+        .orb-hint {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* ─── RIGHT PANEL: CHAT ─────────────────────────── */
+        .chat-panel {
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+            background: var(--panel);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 1.4rem 1.6rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header-title {
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.15em;
+            color: var(--cyan);
+            text-transform: uppercase;
+        }
+
+        .chat-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 6px var(--cyan);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.2rem 1.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            mask-image: linear-gradient(to bottom, transparent, black 6%, black 94%, transparent);
+            min-height: 0;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        .msg {
+            max-width: 82%;
+            font-size: 0.92rem;
+            line-height: 1.55;
+            padding: 0.9rem 1.3rem;
+            border-radius: 12px;
+            position: relative;
+            animation: msg-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .msg-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            font-family: 'JetBrains Mono', monospace;
+            padding: 1rem;
+            margin: 0.8rem 0;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            border-left: 2px solid var(--cyan);
+            color: #d1e8ff;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+
+        @keyframes msg-in {
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .msg.ruby {
+            align-self: flex-start;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(0, 212, 255, 0.02));
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-top-left-radius: 2px;
+            color: var(--text-primary);
+        }
+
+        .msg.ruby .msg-label {
+            color: var(--cyan);
+        }
+
+        .msg.user {
+            align-self: flex-end;
+            text-align: right;
+            background: linear-gradient(135deg, rgba(200, 216, 240, 0.08), rgba(200, 216, 240, 0.02));
+            border: 1px solid rgba(200, 216, 240, 0.2);
+            border-top-right-radius: 2px;
+            color: var(--text-primary);
+        }
+
+        .msg.user .msg-label {
+            color: rgba(200, 216, 240, 0.6);
+            text-align: right;
+            width: 100%;
+        }
+
+        .msg.system-log {
+            align-self: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed var(--border);
+            max-width: 90%;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            text-align: center;
+            padding: 0.4rem 1rem;
+        }
+
+        /* ─── INPUT AREA ────────────────────────────────── */
+        .input-zone {
+            padding: 1.2rem 1.4rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            background: rgba(0, 212, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.5rem 0.8rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-row:focus-within {
+            border-color: rgba(0, 212, 255, 0.35);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .input-prompt {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--cyan);
+            opacity: 0.6;
+            flex-shrink: 0;
+        }
+
+        #user-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            letter-spacing: 0.02em;
+        }
+
+        #user-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        #send-btn {
+            background: transparent;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 3px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--cyan);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        #send-btn:hover {
+            background: var(--cyan-dim);
+            border-color: var(--cyan);
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
+        }
+
+        #send-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Continuous Toggle */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .toggle-row input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 34px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 100px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .toggle-row input[type="checkbox"]::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-row input[type="checkbox"]:checked {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--cyan);
+        }
+
+        .toggle-row input[type="checkbox"]:checked::before {
+            transform: translateX(16px);
+            background: var(--cyan);
+            box-shadow: 0 0 6px var(--cyan);
+        }
+
+        .toggle-row label {
+            cursor: pointer;
+        }
+
+        /* ─── START OVERLAY ─────────────────────────────── */
+        #start-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            background: rgba(5, 6, 13, 0.96);
+            backdrop-filter: blur(20px);
+            transition: opacity 0.6s ease;
+        }
+
+        .overlay-title {
+            font-size: 4rem;
+            font-weight: 700;
+            letter-spacing: 0.5em;
+            color: var(--white);
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .overlay-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.4em;
+            color: var(--cyan);
+            text-transform: uppercase;
+        }
+
+        .overlay-ring {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+
+        .overlay-ring-inner {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            animation: spin-slow 12s linear infinite;
+        }
+
+        .overlay-ring-inner::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--cyan);
+        }
+
+        .overlay-ring-mid {
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            border: 1px dashed rgba(0, 212, 255, 0.1);
+            animation: spin-slow 8s linear infinite reverse;
+        }
+
+        .overlay-orb {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.15), transparent 60%), var(--cyan);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.5), 0 0 80px rgba(0, 212, 255, 0.2);
+            animation: orb-think 3s ease-in-out infinite;
+        }
+
+        #init-btn {
+            background: transparent;
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            padding: 0.9rem 3rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #init-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--cyan);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: -1;
+        }
+
+        #init-btn:hover {
+            color: var(--void);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+        }
+
+        #init-btn:hover::before {
+            transform: translateX(0);
+        }
+
+        .overlay-note {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+        }
+
+        /* ─── CORNER DECORATIONS ────────────────────────── */
+        .corner-deco {
+            position: fixed;
+            z-index: 9;
+            width: 60px;
+            height: 60px;
+            pointer-events: none;
+        }
+
+        .corner-deco::before,
+        .corner-deco::after {
+            content: '';
+            position: absolute;
+            background: var(--cyan);
+            opacity: 0.25;
+        }
+
+        .corner-tl {
+            top: 20px;
+            left: 20px;
+        }
+
+        .corner-tl::before {
+            width: 1px;
+            height: 40px;
+            top: 0;
+            left: 0;
+        }
+
+        .corner-tl::after {
+            width: 40px;
+            height: 1px;
+            top: 0;
+            left: 0;
+        }
+
+        .corner-tr {
+            top: 20px;
+            right: 20px;
+        }
+
+        .corner-tr::before {
+            width: 1px;
+            height: 40px;
+            top: 0;
+            right: 0;
+        }
+
+        .corner-tr::after {
+            width: 40px;
+            height: 1px;
+            top: 0;
+            right: 0;
+        }
+
+        .corner-bl {
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .corner-bl::before {
+            width: 1px;
+            height: 40px;
+            bottom: 0;
+            left: 0;
+        }
+
+        .corner-bl::after {
+            width: 40px;
+            height: 1px;
+            bottom: 0;
+            left: 0;
+        }
+
+        .corner-br {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .corner-br::before {
+            width: 1px;
+            height: 40px;
+            bottom: 0;
+            right: 0;
+        }
+
+        .corner-br::after {
+            width: 40px;
+            height: 1px;
+            bottom: 0;
+            right: 0;
+        }
+
+        /* ─── SCANLINE ──────────────────────────────────── */
+        .scanline {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.03) 2px,
+                    rgba(0, 0, 0, 0.03) 4px);
+        }
+
+        /* ─── RESPONSIVE ────────────────────────────────── */
+        @media (max-width: 760px) {
+            .shell {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+
+            .orb-panel {
+                padding: 1.5rem 1rem;
+                gap: 1.5rem;
+            }
+
+            .orb-stage {
+                width: 220px;
+                height: 220px;
+            }
+
+            .orb-core {
+                width: 110px;
+                height: 110px;
+            }
+
+            .pulse-ring {
+                width: 140px;
+                height: 140px;
+            }
+
+            .chat-panel {
+                border-left: none;
+                border-top: 1px solid var(--border);
+            }
+
+        }
+    </style>
+</head>
+
+<body class="state-Idle">
+
+    <!-- Canvas particle background -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Visual layers -->
+    <div class="aurora">
+        <div class="aurora-blob"></div>
+        <div class="aurora-blob"></div>
+        <div class="aurora-blob"></div>
+    </div>
+    <div class="grid-overlay"></div>
+    <div class="scanline"></div>
+
+    <!-- Corner decorations -->
+    <div class="corner-deco corner-tl"></div>
+    <div class="corner-deco corner-tr"></div>
+    <div class="corner-deco corner-bl"></div>
+    <div class="corner-deco corner-br"></div>
+
+    <!-- Start Overlay -->
+    <div id="start-overlay">
+        <div class="overlay-title">KLYRA</div>
+        <div class="overlay-sub">Voice Intelligence AI</div>
+        <div class="overlay-ring">
+            <div class="overlay-ring-inner"></div>
+            <div class="overlay-ring-mid"></div>
+            <div class="overlay-orb"></div>
+        </div>
+        <button id="init-btn">INITIALIZE SYSTEM</button>
+        <div class="overlay-note">// grants microphone &amp; audio access</div>
+    </div>
+
+    <!-- Main shell -->
+    <div class="shell">
+
+
+        <!-- LEFT: Orb Panel -->
+        <div class="orb-panel">
+
+            <div class="ruby-wordmark">KLYRA</div>
+
+            <div id="status" class="status-pill">
+                <div class="status-dot"></div>
+                <span id="status-text">OFFLINE</span>
+            </div>
+
+            <div class="orb-stage">
+                <div class="scan-ring"></div>
+                <div class="scan-ring-2"></div>
+                <div class="scan-ring-3"></div>
+                <div class="pulse-ring"></div>
+                <div class="orb-core">
+                </div>
+                <div class="orb-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="22" />
+                    </svg>
+                </div>
+                <div class="orb-ground"></div>
+            </div>
+
+            <div class="waveform">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+
+            <div class="orb-hint">hold orb · speak · release</div>
+        </div>
+
+        <!-- RIGHT: Chat Panel -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <div class="chat-header-title">// TRANSMISSION LOG</div>
+                <div class="chat-dot"></div>
+            </div>
+
+            <div class="chat-messages" id="chat">
+                <div class="msg ruby">System initialized. Waiting for connection...</div>
+            </div>
+
+            <div class="input-zone">
+                <div class="input-row">
+                    <span class="input-prompt">&gt;_</span>
+                    <input type="text" id="user-input" placeholder="enter command..." autofocus autocomplete="off">
+                    <button id="send-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                        </svg>
+                    </button>
+                    <button id="upload-btn" title="Batch Speech-to-Text Upload">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </button>
+                    <input type="file" id="stt-upload" hidden multiple accept="audio/*">
+                </div>
+
+                <div class="toggle-row" style="margin-top: -0.5rem; justify-content: space-between;">
+                    <div style="display: flex; gap: 1rem;">
+                        <div class="toggle-row">
+                            <input type="checkbox" id="continuous-sync" checked>
+                            <label for="continuous-sync">always active mode</label>
+                        </div>
+                    </div>
+                    
+                    <div class="toggle-row">
+                        <label for="user-gender">I am a:</label>
+                        <select id="user-gender" style="background: rgba(0,212,255,0.05); color: var(--cyan); border: 1px solid var(--border); border-radius: 4px; padding: 2px 5px; font-family: 'JetBrains Mono', monospace; outline: none; cursor: pointer;">
+                            <option value="boy">Boy</option>
+                            <option value="girl">Girl</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ─── PARTICLE BACKGROUND ───────────────────────── */
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            let W, H, particles = [], animId;
+
+            function resize() {
+                W = canvas.width = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+            }
+
+            function Particle() {
+                this.x = Math.random() * W;
+                this.y = Math.random() * H;
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = (Math.random() - 0.5) * 0.3;
+                this.r = Math.random() * 1.5 + 0.3;
+                this.a = Math.random() * 0.5 + 0.1;
+            }
+
+            function init() {
+                particles = [];
+                const count = Math.floor((W * H) / 14000);
+                for (let i = 0; i < count; i++) particles.push(new Particle());
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+                    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(0,212,255,${p.a})`;
+                    ctx.fill();
+
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const q = particles[j];
+                        const dx = p.x - q.x, dy = p.y - q.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 130) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
+                            ctx.strokeStyle = `rgba(0,212,255,${(1 - dist / 130) * 0.07})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                animId = requestAnimationFrame(draw);
+            }
+
+            window.addEventListener('resize', () => { resize(); init(); });
+            resize(); init(); draw();
+        })();
+
+        /* ─── SOCKET + APP LOGIC (unchanged) ───────────── */
+        const socket = io();
+        const body = document.body;
+        const statusText = document.getElementById('status-text');
+        const chat = document.getElementById('chat');
+
+        socket.on('connect', () => {
+            statusText.innerText = 'ONLINE';
+            document.querySelector('.status-dot').style.cssText = 'background: #00ff88; box-shadow: 0 0 8px #00ff88;';
+        });
+
+        socket.on('state_change', (data) => {
+            console.log('State change:', data.state);
+            body.className = 'state-' + data.state;
+            statusText.innerText = data.state.toUpperCase();
+        });
+
+        socket.on('transcription', (data) => {
+            console.log('Transcription received:', data.text);
+            if (data.text) {
+                inputField.value = data.text;
+                inputField.style.background = 'rgba(0, 212, 255, 0.08)';
+                setTimeout(() => inputField.style.background = 'transparent', 1000);
+            }
+        });
+
+        // Simple markdown-to-html formatter
+        function formatMarkdown(text) {
+            if (!text) return "";
+            return text
+                .replace(/```([\s\S]*?)```/g, '<div class="code-block">$1</div>') // Code blocks
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')                 // Bold
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')                           // Italic
+                .replace(/^- (.*)/gm, '<li>$1</li>');                            // Lists
+        }
+
+        socket.on('new_message', (data) => {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'msg ' + data.sender.toLowerCase();
+            msgDiv.innerHTML = `<div class="msg-label">${data.sender === 'User' ? 'YOU' : 'KLYRA'}</div>` +
+                `<div class="msg-content">${formatMarkdown(data.text)}</div>`;
+            chat.appendChild(msgDiv);
+            chat.scrollTop = chat.scrollHeight;
+        });
+
+        let isSpeaking = false;
+
+        socket.on('speak_audio', (data) => {
+            console.log('Received speak_audio event');
+            if (data.audio) {
+                console.log('Audio data size:', data.audio.length);
+                const audio = new Audio("data:audio/mp3;base64," + data.audio);
+
+                audio.onplay = () => {
+                    isSpeaking = true;
+                    body.className = 'state-Speaking';
+                    statusText.innerText = 'SPEAKING';
+                };
+
+                audio.onended = () => {
+                    isSpeaking = false;
+                    body.className = 'state-Idle';
+                    statusText.innerText = 'READY';
+
+                    const isContinuous = document.getElementById('continuous-sync').checked;
+                    if (isContinuous) {
+                        setTimeout(() => {
+                            if (!isSpeaking) startRecording();
+                        }, 1200);
+                    }
+                };
+
+                audio.play().then(() => {
+                    console.log('Audio playback started');
+                }).catch(e => {
+                    console.error("Audio Playback Error:", e);
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'msg ruby';
+                    msgDiv.style.borderLeftColor = '#ff3b5c';
+                    msgDiv.style.color = '#ff3b5c';
+                    msgDiv.innerText = "Audio Error: " + e.message + ". Tap screen to enable audio.";
+                    chat.appendChild(msgDiv);
+                });
+            } else {
+                console.warn('speak_audio event received but no audio data found');
+            }
+        });
+
+        /* ─── TEXT INPUT ────────────────────────────────── */
+        const inputField = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        function sendMessage() {
+            const text = inputField.value.trim();
+            if (text) {
+                socket.emit('send_text', { text: text });
+                inputField.value = '';
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        /* ─── BATCH STT UPLOAD ─────────────────────────── */
+        const uploadBtn = document.getElementById('upload-btn');
+        const sttUpload = document.getElementById('stt-upload');
+
+        uploadBtn.addEventListener('click', () => sttUpload.click());
+
+        sttUpload.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+
+            statusText.innerText = 'PROCESSING';
+            body.className = 'state-Thinking';
+
+            const payload = [];
+            for (const file of files) {
+                const reader = new FileReader();
+                const fileData = await new Promise((resolve) => {
+                    reader.onload = (re) => resolve({
+                        name: file.name,
+                        data: re.target.result.split(',')[1]
+                    });
+                    reader.readAsDataURL(file);
+                });
+                payload.push(fileData);
+            }
+
+            console.log('Sending batch STT request for', files.length, 'files');
+            socket.emit('batch_stt_files', { files: payload });
+            sttUpload.value = '';
+        });
+
+        /* ─── SETTINGS HANDLERS ─────────────────────────── */
+        const genderSelect = document.getElementById('user-gender');
+        genderSelect.addEventListener('change', (e) => {
+            const gender = e.target.value;
+            socket.emit('set_gender', { gender: gender });
+        });
+
+        /* ─── VOICE RECORDING ───────────────────────────── */
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let audioContext, analyser, microphone;
+
+        async function startRecording() {
+            if (isRecording || isSpeaking) return;
+            inputField.value = "";
+            audioChunks = [];
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+                });
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+
+                let lastSpeakTime = Date.now();
+                const silenceThreshold = 30;
+                const silenceDuration = 1500;
+
+                function checkSilence() {
+                    if (!isRecording) return;
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+                    if (sum / bufferLength > silenceThreshold) lastSpeakTime = Date.now();
+                    if (Date.now() - lastSpeakTime > silenceDuration) {
+                        stopRecording();
+                    } else {
+                        requestAnimationFrame(checkSilence);
+                    }
+                }
+
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+                mediaRecorder.onstop = async () => {
+                    if (audioChunks.length === 0) return;
+                    if (audioContext) audioContext.close();
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = () => {
+                        socket.emit('mobile_audio', { audio: reader.result.split(',')[1] });
+                    };
+                    stream.getTracks().forEach(t => t.stop());
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                requestAnimationFrame(checkSilence);
+
+            } catch (err) {
+                console.error("Microphone Error:", err);
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'msg ruby';
+                msgDiv.style.borderLeftColor = '#ff3b5c';
+                msgDiv.innerText = "Microphone Error: " + err.message;
+                chat.appendChild(msgDiv);
+                chat.scrollTop = chat.scrollHeight;
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+                isRecording = false;
+            }
+        }
+
+        /* Orb click/touch triggers recording */
+        const orbCore = document.querySelector('.orb-core');
+        orbCore.addEventListener('mousedown', startRecording);
+        window.addEventListener('mouseup', stopRecording);
+        orbCore.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
+        orbCore.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); });
+
+        /* ─── INIT OVERLAY ──────────────────────────────── */
+        const startOverlay = document.getElementById('start-overlay');
+        const initBtn = document.getElementById('init-btn');
+
+        initBtn.addEventListener('click', async () => {
+            const audio = new Audio();
+            audio.play().catch(() => { });
+            socket.emit('init_session');
+
+            startOverlay.style.opacity = '0';
+            setTimeout(() => startOverlay.style.display = 'none', 600);
+
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: { echoCancellation: true, noiseSuppression: true }
+                    });
+                    stream.getTracks().forEach(t => t.stop());
+                    setTimeout(() => { startRecording(); }, 1000);
+                } catch (e) {
+                    console.error("Mic access denied:", e);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

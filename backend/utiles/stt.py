@@ -91,56 +91,39 @@ class RubySTT:
         1. Google Speech Recognition (speech_recognition library) - FREE, no key needed
         2. Gemini audio transcription - FREE tier with GEMINI_API_KEY
         """
-        # Method 0: Sarvam AI STT (Official SDK)
+        # Method 0: Sarvam AI STT (REST API — reliable, tested)
         sarvam_key = os.getenv("SARVAM_API_KEY")
         if sarvam_key and "your_" not in sarvam_key:
             try:
-                import base64
-                import asyncio
-                from sarvamai import AsyncSarvamAI
-                
-                # Convert bytes to base64 as required by the snippet
-                audio_b64 = base64.b64encode(wav_bytes).decode("utf-8")
-                
-                async def run_sarvam_stt():
-                    client = AsyncSarvamAI(api_subscription_key=sarvam_key)
-                    # Mapping language for Sarvam
-                    lang_map = {
-                        "en": "en-IN", "hi": "hi-IN", "ta": "ta-IN", 
-                        "ml": "ml-IN", "te": "te-IN", "kn": "kn-IN"
-                    }
-                    sarvam_lang = lang_map.get(self.language_code, "en-IN")
-                    
-                    try:
-                        async with client.speech_to_text_streaming.connect(
-                            model="saaras:v3",
-                            mode="translate", # Or "transcribe" based on preference, user asked for translate logic
-                            language_code=sarvam_lang,
-                            high_vad_sensitivity=True
-                        ) as ws:
-                            await ws.transcribe(audio=audio_b64)
-                            response = await ws.recv()
-                            # Ensure we get the text from the response object
-                            if hasattr(response, 'transcript'):
-                                return response.transcript
-                            elif isinstance(response, dict):
-                                return response.get("transcript", "")
-                            return str(response)
-                    except Exception as e:
-                        print(f"Sarvam SDK Connect Error: {e}")
-                        return ""
+                import io as _io
+                from sarvamai import SarvamAI
 
-                # Run the async function synchronously
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                transcript = loop.run_until_complete(run_sarvam_stt())
-                loop.close()
-                
+                # Map internal language code to Sarvam BCP-47
+                lang_map = {
+                    "en": "en-IN", "hi": "hi-IN", "ta": "ta-IN",
+                    "ml": "ml-IN", "te": "te-IN", "kn": "kn-IN",
+                    "bn": "bn-IN", "gu": "gu-IN", "mr": "mr-IN",
+                    "pa": "pa-IN",
+                }
+                sarvam_lang = lang_map.get(self.language_code, "en-IN")
+
+                client = SarvamAI(api_subscription_key=sarvam_key)
+
+                # Pass as a (filename, fileobj, mimetype) tuple — REST file upload
+                response = client.speech_to_text.transcribe(
+                    file=("audio.wav", _io.BytesIO(wav_bytes), "audio/wav"),
+                    model="saaras:v3",
+                    mode="transcribe",
+                    language_code=sarvam_lang,
+                )
+
+                transcript = getattr(response, "transcript", "") or ""
                 if transcript:
-                    print(f"STT (Sarvam SDK): {transcript}")
-                    return transcript
+                    print(f"STT (Sarvam REST): {transcript}")
+                    return transcript.strip()
+
             except Exception as e:
-                print(f"STT Sarvam SDK Exception: {e}")
+                print(f"STT Sarvam REST Error: {e}")
 
         # Method 1: Google Speech Recognition (speech_recognition library) — completely FREE
         try:

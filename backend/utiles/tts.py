@@ -25,12 +25,24 @@ class RubyTTS:
     online TTS service (Free, high quality). Plays them back using pygame.
     """
 
-    # Mapping of BCP-47 codes to Edge-TTS voices
+    # Mapping of BCP-47 codes to Edge-TTS voices by gender
     language_config = {
-        "en-IN": {"voice": "en-IN-PrabhatNeural", "rate": "+0%"},
-        "en-US": {"voice": "en-US-AndrewNeural", "rate": "+0%"}, # High clarity male voice
-        "ml-IN": {"voice": "ml-IN-SobhanaNeural", "rate": "+0%"},
-        "ta-IN": {"voice": "ta-IN-ValluvarNeural", "rate": "+0%"}, # Male Tamil voice
+        "en-IN": {
+            "male": {"voice": "en-IN-PrabhatNeural", "rate": "+0%"},
+            "female": {"voice": "en-IN-NeerjaNeural", "rate": "+0%"}
+        },
+        "hi-IN": {
+            "male": {"voice": "hi-IN-MadhurNeural", "rate": "+0%"},
+            "female": {"voice": "hi-IN-SwaraNeural", "rate": "+0%"}
+        },
+        "ta-IN": {
+            "male": {"voice": "ta-IN-ValluvarNeural", "rate": "+0%"},
+            "female": {"voice": "ta-IN-PallaviNeural", "rate": "+0%"}
+        },
+        "ml-IN": {
+            "male": {"voice": "ml-IN-MidhunNeural", "rate": "+0%"},
+            "female": {"voice": "ml-IN-SobhanaNeural", "rate": "+0%"}
+        }
     }
 
     def __init__(
@@ -52,12 +64,27 @@ class RubyTTS:
         self.language_code = language
         self.cache_dir = cache_dir
         
-        cfg = self.language_config.get(language, self.language_config["en-IN"])
-        self.voice = voice or cfg["voice"]
-        # Edge-TTS uses percentages for rate, e.g., "+0%", "-10%"
-        self.rate = "+0%"
+        self.user_gender = "boy" # user gender: boy or girl
+        self._update_ai_voice()
+        
+        # Override specific voice if provided
+        if voice:
+            self.voice = voice
 
         os.makedirs(self.cache_dir, exist_ok=True)
+
+    def _update_ai_voice(self):
+        # User Boy -> AI Female, User Girl -> AI Male
+        ai_gender = "female" if self.user_gender == "boy" else "male"
+        cfg = self.language_config.get(self.language_code, self.language_config["en-IN"])
+        voice_cfg = cfg.get(ai_gender, list(cfg.values())[0])
+        self.voice = voice_cfg["voice"]
+        self.rate = voice_cfg["rate"]
+
+    def set_user_gender(self, user_gender: str):
+        self.user_gender = user_gender.lower()
+        self._update_ai_voice()
+        print(f"TTS: User gender set to {self.user_gender}. AI voice updated to {self.voice}.")
 
     def update_language(self, language: str, speaking_rate: float = None):
         """
@@ -69,8 +96,7 @@ class RubyTTS:
             language = "en-IN"
 
         self.language_code = language
-        cfg = self.language_config[language]
-        self.voice = cfg["voice"]
+        self._update_ai_voice()
 
     def update_speaking_rate(self, speaking_rate: float):
         """
@@ -95,6 +121,8 @@ class RubyTTS:
 
         exception_holder = []
 
+        self.auto_set_language(text)
+
         async def _internal():
             communicate = edge_tts.Communicate(text, self.voice, rate=self.rate)
             await communicate.save(output_file)
@@ -115,7 +143,22 @@ class RubyTTS:
         if exception_holder:
             raise exception_holder[0]
 
+    def auto_set_language(self, text: str):
+        if not text: return
+        count_ta = sum(1 for c in text if '\u0B80' <= c <= '\u0BFF')
+        count_hi = sum(1 for c in text if '\u0900' <= c <= '\u097F')
+        count_ml = sum(1 for c in text if '\u0D00' <= c <= '\u0D7F')
+        
+        target = "en-IN"
+        if count_ta > 5 or (count_ta > 0 and len(text) < 20): target = "ta-IN"
+        elif count_hi > 5 or (count_hi > 0 and len(text) < 20): target = "hi-IN"
+        elif count_ml > 5 or (count_ml > 0 and len(text) < 20): target = "ml-IN"
+        
+        if self.language_code != target:
+            self.update_language(target)
+
     async def _generate_audio_bytes(self, text: str) -> bytes:
+        self.auto_set_language(text)
         """Generates audio and returns bytes directly."""
         # Try Sarvam AI TTS first if key is available
         sarvam_key = os.getenv("SARVAM_API_KEY")
@@ -142,10 +185,13 @@ class RubyTTS:
                 }
                 sarvam_lang = lang_map.get(self.language_code, "en-IN")
                 
+                ai_gender = "female" if self.user_gender == "boy" else "male"
+                sarvam_speaker = "meera" if ai_gender == "female" else "abhilash"
+                
                 payload = {
                     "inputs": [text],
                     "target_language_code": sarvam_lang,
-                    "speaker": "abhilash", # Valid male speaker for Sarvam
+                    "speaker": sarvam_speaker, 
                     "pitch": 0,
                     "pace": 1.0,
                     "loudness": 1.5,
