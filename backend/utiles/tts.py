@@ -1,7 +1,6 @@
 import os
 import io
 import tempfile
-import pygame
 import asyncio
 import edge_tts
 from dotenv import load_dotenv
@@ -20,9 +19,10 @@ except Exception as e:
     print(f"TTS: Pygame mixer init failed (expected on headless): {e}")
     os.environ["SDL_AUDIODRIVER"] = "dummy"
     try:
+        import pygame
         pygame.mixer.init()
-    except:
-        pass
+    except Exception:
+        pygame = None
 
 
 class RubyTTS:
@@ -273,7 +273,7 @@ class RubyTTS:
 
             self._generate_audio_sync(text, cache_file)
 
-            if os.path.exists(cache_file):
+            if os.path.exists(cache_file) and pygame:
                 pygame.mixer.music.load(cache_file)
                 pygame.mixer.music.play()
                 while pygame.mixer.music.get_busy():
@@ -283,11 +283,12 @@ class RubyTTS:
         finally:
             try:
                 if 'cache_file' in locals() and os.path.exists(cache_file):
-                    pygame.mixer.music.unload()
+                    if pygame:
+                        pygame.mixer.music.unload()
                     os.remove(cache_file)
             except Exception:
                 pass
 
     def stop(self):
-        """Immediately stop any currently playing audio."""
-        pygame.mixer.music.stop()
+        if pygame:
+            pygame.mixer.music.stop()
