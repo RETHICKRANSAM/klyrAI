@@ -10,11 +10,19 @@ load_dotenv()
 
 # Initialize pygame mixer once at module level. 
 # Fallback to dummy audio driver for headless servers (like Render)
-try:
-    pygame.mixer.init()
-except pygame.error:
+if os.environ.get("RENDER"):
     os.environ["SDL_AUDIODRIVER"] = "dummy"
+
+try:
+    import pygame
     pygame.mixer.init()
+except Exception as e:
+    print(f"TTS: Pygame mixer init failed (expected on headless): {e}")
+    os.environ["SDL_AUDIODRIVER"] = "dummy"
+    try:
+        pygame.mixer.init()
+    except:
+        pass
 
 
 class RubyTTS:

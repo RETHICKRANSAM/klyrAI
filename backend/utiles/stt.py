@@ -2,7 +2,11 @@ import os
 import io
 import wave
 import numpy as np
-import sounddevice as sd
+try:
+    import sounddevice as sd
+except Exception as e:
+    print(f"STT: sounddevice not available (expected on headless): {e}")
+    sd = None
 from dotenv import load_dotenv
 
 load_dotenv()
