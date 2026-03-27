@@ -1,5 +1,4 @@
 from langchain_core.tools import tool
-import serial
 import time
 from utiles import rag_utiles
 
@@ -17,6 +16,11 @@ def arduino_serial_communication(query: str) -> str:
     """Communicates with an Arduino device via serial connection."""
     import platform
     try:
+        try:
+            import serial
+        except ImportError:
+            return "Serial communication requires the 'pyserial' package which is missing."
+            
         # Check OS for default port
         port = 'COM3' if platform.system() == 'Windows' else '/dev/ttyUSB0'
         ser = serial.Serial(port, 9600, timeout=1)
