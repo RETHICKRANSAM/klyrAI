@@ -281,6 +281,9 @@ def ghost_cursor_click(coords: str = "") -> str:
     """
     try:
         import pyautogui
+    except ImportError:
+        return "Ghost cursor is only available on Windows desktop (pyautogui not installed)."
+    try:
         sw, sh = pyautogui.size()
         x, y = sw // 2, sh // 2  # Default to center
         

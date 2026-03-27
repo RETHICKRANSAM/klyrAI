@@ -2,15 +2,27 @@ import psutil
 import geocoder
 import subprocess
 import os
-import pyautogui
 import time
 from collections import Counter
 from langchain.tools import tool
-import win32gui
-import win32process
 import webbrowser
 import shutil
 from datetime import datetime
+
+# Desktop-only imports — gracefully skip on headless servers (e.g. Render)
+try:
+    import pyautogui
+except ImportError:
+    pyautogui = None
+    print("pc_tools: pyautogui not available (expected on headless servers)")
+
+try:
+    import win32gui
+    import win32process
+except ImportError:
+    win32gui = None
+    win32process = None
+    print("pc_tools: win32gui not available (expected on non-Windows/headless servers)")
 
 def _open_in_chrome(url: str):
     """Helper to force open a URL in Google Chrome on Windows."""
@@ -40,6 +52,8 @@ def get_current_location(query: str = "") -> str:
 def list_open_windows(query: str = "") -> str:
     """Lists all visible application windows currently open on the computer. 
     Use this to see what apps the user is currently interacting with."""
+    if win32gui is None:
+        return "Window listing is only available on Windows desktop."
     def callback(hwnd, windows):
         if win32gui.IsWindowVisible(hwnd):
             title = win32gui.GetWindowText(hwnd)
@@ -55,6 +69,8 @@ def list_open_windows(query: str = "") -> str:
 def get_chrome_activity(query: str = "") -> str:
     """Checks all open Google Chrome windows to see what websites or media (like JioHotstar, YouTube) are currently active.
     Returns the titles of all active Chrome tabs."""
+    if win32gui is None:
+        return "Chrome activity detection is only available on Windows desktop."
     def callback(hwnd, windows):
         if win32gui.IsWindowVisible(hwnd):
             title = win32gui.GetWindowText(hwnd)
@@ -268,6 +284,8 @@ def open_system_app(app_names: str) -> str:
 def pc_automation(command: str) -> str:
     """Performs PC tasks. Commands: 'minimize_all', 'show_desktop', 'lock_pc', 'shutdown', 'restart', 'dark' (for Dark Mode), 'light' (for Light Mode)."""
     try:
+        if pyautogui is None:
+            return "PC automation is only available on Windows desktop (pyautogui not installed)."
         command = command.lower().strip()
         if "minimize" in command or "desktop" in command:
             pyautogui.hotkey('win', 'd')
@@ -369,6 +387,8 @@ def get_weather(city: str) -> str:
 def system_control(action: str) -> str:
     """Controls system settings. Actions: 'volume_up', 'volume_down', 'mute', 'brightness_up', 'brightness_down', 'sleep', 'settings'."""
     try:
+        if pyautogui is None:
+            return "System control is only available on Windows desktop (pyautogui not installed)."
         if action == "volume_up":
             for _ in range(5): pyautogui.press("volumeup")
             return "Increased volume."
