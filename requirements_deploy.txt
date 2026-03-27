@@ -81,7 +81,6 @@ pydantic-settings
 pydantic_core
 pygame
 pypdf
-pypereclip
 python-dotenv
 python-engineio
 python-socketio
@@ -114,4 +113,3 @@ youtube-dl
 yt-dlp
 zstandard
 gunicorn
-eventlet
