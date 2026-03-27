@@ -1,16 +1,27 @@
 """
-This wrapper file ensures that hosting services like Render, 
-which default to `gunicorn app:app`, can successfully locate 
-and run the Flask server without requiring custom start commands.
+KLYRA AI - Unified Backend Entry Point
 """
-from web_server import app, socketio
+import os
+import sys
 
-@app.get('/')
-def home():
-    return jsonify({"status": "running", "engine": "KLYRA AI API"})
+# Fix path to allow local imports from 'web_server'
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+try:    
+    from web_server import app, socketio
+except Exception as e:
+    import traceback
+    print(f"CRITICAL BOOT ERROR: {e}")
+    traceback.print_exc()
+    sys.exit(1)
 
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get("PORT", 5001))
-    print(f"Starting KLYRA Backend on port {port} with debug=True...")
-    socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True, debug=True)
+    print(f"🚀 KLYRA Backend launching on port {port}...")
+    try:
+        # Disable reloader to prevent port-binding issues on Windows
+        socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True, debug=True, use_reloader=False)
+    except Exception as e:
+        print(f"CRITICAL RUNTIME ERROR: {e}")
+        import traceback
+        traceback.print_exc()

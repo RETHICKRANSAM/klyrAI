@@ -270,21 +270,49 @@ class SummarizeTextTool(BaseTool):
         except Exception as e:
             return f"Error summarizing text: {str(e)}"
 
-class GhostCursorTool(BaseTool):
-    name: str = "ghost_cursor_click"
-    description: str = (
-        "Moves the mouse cursor smoothly to a screen coordinate (x, y) and clicks. "
-        "Simulates a 'ghost cursor' for automation. "
-        "Input must be just 'X,Y' coordinates. e.g. '500,400'."
-    )
-    def _run(self, coords: str) -> str:
-        try:
-            import pyautogui
-            coords = coords.replace(" ", "")
-            x, y = map(int, coords.split(","))
-            pyautogui.moveTo(x, y, duration=1.5, tween=pyautogui.easeInOutQuad) # Ghost cursor effect
-            pyautogui.click()
-            return f"Ghost cursor successfully moved and clicked at ({x}, {y})."
-        except Exception as e:
-            return f"Ghost cursor error. Format must be x,y. Details: {str(e)}"
+from langchain.tools import tool
+
+@tool
+def ghost_cursor_click(coords: str = "") -> str:
+    """
+    Moves the mouse cursor smoothly to a screen coordinate (x, y) and clicks. 
+    Simulates a 'ghost cursor' for automation. 
+    Input can be specific coords 'X,Y' or descriptions like 'center', 'start', 'top right'.
+    """
+    try:
+        import pyautogui
+        sw, sh = pyautogui.size()
+        x, y = sw // 2, sh // 2  # Default to center
+        
+        if coords:
+            coords_str = coords.replace(" ", "").lower()
+            if "start" in coords_str:
+                x, y = 10, sh - 10
+            elif "topright" in coords_str:
+                x, y = sw - 10, 10
+            elif "," in coords_str:
+                x, y = map(int, coords_str.split(","))
+
+        pyautogui.moveTo(x, y, duration=1.5, tween=pyautogui.easeInOutQuad) # Ghost cursor effect
+        pyautogui.click()
+        return f"Ghost cursor successfully moved and clicked at ({x}, {y})."
+    except Exception as e:
+        return f"Ghost cursor error: {str(e)}"
+
+@tool
+def schedule_meeting(title: str) -> str:
+    """
+    Schedules a meeting on Google Calendar automatically. 
+    Input should be the meeting details or title. e.g. 'Team Sync' or 'Doctor Appointment'.
+    """
+    try:
+        import urllib.parse
+        import webbrowser
+        encoded_title = urllib.parse.quote(title)
+        # Open the Google Calendar event creation template
+        url = f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={encoded_title}"
+        webbrowser.open(url)
+        return f"Successfully opened Google Calendar to schedule: '{title}'"
+    except Exception as e:
+        return f"Failed to automate Calendar scheduling: {str(e)}"
 

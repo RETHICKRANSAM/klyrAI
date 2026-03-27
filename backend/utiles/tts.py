@@ -28,8 +28,8 @@ class RubyTTS:
     # Mapping of BCP-47 codes to Edge-TTS voices by gender
     language_config = {
         "en-IN": {
-            "male": {"voice": "en-IN-PrabhatNeural", "rate": "+0%"},
-            "female": {"voice": "en-IN-NeerjaNeural", "rate": "+0%"}
+            "male": {"voice": "en-US-GuyNeural", "rate": "+0%"},
+            "female": {"voice": "en-US-AriaNeural", "rate": "+0%"}
         },
         "hi-IN": {
             "male": {"voice": "hi-IN-MadhurNeural", "rate": "+0%"},
@@ -186,15 +186,13 @@ class RubyTTS:
                 sarvam_lang = lang_map.get(self.language_code, "en-IN")
                 
                 ai_gender = "female" if self.user_gender == "boy" else "male"
-                sarvam_speaker = "meera" if ai_gender == "female" else "abhilash"
+                sarvam_speaker = "amelia" if ai_gender == "female" else "abhilash"
                 
                 payload = {
                     "inputs": [text],
                     "target_language_code": sarvam_lang,
                     "speaker": sarvam_speaker, 
-                    "pitch": 0,
                     "pace": 1.0,
-                    "loudness": 1.5,
                     "speech_sample_rate": 24000, # Increased from 8000 for high quality
                     "enable_preprocessing": True,
                     "model": "bulbul:v3"

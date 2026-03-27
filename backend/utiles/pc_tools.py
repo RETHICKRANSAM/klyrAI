@@ -235,25 +235,34 @@ def web_navigation(site_name: str, search_query: str = "") -> str:
         return f"Searching for '{search_term}' on Google."
 
 @tool
-def open_system_app(app_name: str) -> str:
-    """Opens a system application by name (e.g., 'notepad', 'chrome', 'camera', 'calculator')."""
+def open_system_app(app_names: str) -> str:
+    """Opens one or multiple system applications. Pass a comma-separated list of names (e.g., 'notepad, chrome, calculator')."""
     try:
-        name = app_name.lower().strip()
-        if "chrome" in name:
-            subprocess.Popen(f"start chrome", shell=True)
-        elif "notepad" in name:
-            subprocess.Popen(["notepad.exe"])
-        elif "calc" in name:
-            subprocess.Popen(["calc.exe"])
-        elif "camera" in name:
-            subprocess.Popen(["start", "microsoft.windows.camera:"], shell=True)
-        elif "spotify" in name:
-             subprocess.Popen(f"start spotify", shell=True)
-        else:
-            os.system(f"start {app_name}")
-        return f"Successfully attempted to launch: {app_name}"
+        results = []
+        names = [n.strip() for n in app_names.replace(" and ", ",").split(",") if n.strip()]
+        for name in names:
+            name_lower = name.lower()
+            if "chrome" in name_lower:
+                subprocess.Popen(f"start chrome", shell=True)
+                results.append(f"Launched {name}")
+            elif "notepad" in name_lower:
+                subprocess.Popen(["notepad.exe"])
+                results.append(f"Launched {name}")
+            elif "calc" in name_lower:
+                subprocess.Popen(["calc.exe"])
+                results.append(f"Launched {name}")
+            elif "camera" in name_lower:
+                subprocess.Popen(["start", "microsoft.windows.camera:"], shell=True)
+                results.append(f"Launched {name}")
+            elif "spotify" in name_lower:
+                subprocess.Popen(f"start spotify", shell=True)
+                results.append(f"Launched {name}")
+            else:
+                os.system(f"start {name}")
+                results.append(f"Launched {name}")
+        return "\n".join(results)
     except Exception as e:
-        return f"Failed to open {app_name}: {str(e)}"
+        return f"Failed to open apps: {str(e)}"
 
 @tool
 def pc_automation(command: str) -> str:

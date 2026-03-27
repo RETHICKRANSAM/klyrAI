@@ -83,14 +83,40 @@ class RubySTT:
         buf.seek(0)
         return buf.read()
 
-    def transcribe_audio(self, wav_bytes: bytes) -> str:
+    def _convert_webm_to_wav(self, webm_bytes: bytes) -> bytes:
+        """Convert WebM audio bytes to 16kHz mono WAV using imageio-ffmpeg."""
+        import tempfile
+        import subprocess
+        try:
+            import imageio_ffmpeg
+            ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+            with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as f_in:
+                f_in.write(webm_bytes)
+                in_path = f_in.name
+            out_path = in_path.replace(".webm", ".wav")
+            subprocess.run([ffmpeg_exe, "-y", "-i", in_path, "-ac", "1", "-ar", "16000", out_path],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            with open(out_path, "rb") as f_out:
+                wav_bytes = f_out.read()
+            os.remove(in_path)
+            os.remove(out_path)
+            return wav_bytes
+        except Exception as e:
+            print(f"STT: WebM to WAV conversion failed: {e}")
+            return webm_bytes
+
+    def transcribe_audio(self, audio_bytes: bytes, mime_type: str = "audio/wav") -> str:
         """
-        Transcribe WAV audio bytes.
+        Transcribe audio bytes (WAV or WebM).
         
         Tries these FREE services in order:
         1. Google Speech Recognition (speech_recognition library) - FREE, no key needed
         2. Gemini audio transcription - FREE tier with GEMINI_API_KEY
         """
+        if "webm" in mime_type:
+            audio_bytes = self._convert_webm_to_wav(audio_bytes)
+            mime_type = "audio/wav"  # Now it's a standard WAV file
+
         # Method 0: Sarvam AI STT (REST API — reliable, tested)
         sarvam_key = os.getenv("SARVAM_API_KEY")
         if sarvam_key and "your_" not in sarvam_key:
@@ -110,8 +136,9 @@ class RubySTT:
                 client = SarvamAI(api_subscription_key=sarvam_key)
 
                 # Pass as a (filename, fileobj, mimetype) tuple — REST file upload
+                ext = "webm" if "webm" in mime_type else "wav"
                 response = client.speech_to_text.transcribe(
-                    file=("audio.wav", _io.BytesIO(wav_bytes), "audio/wav"),
+                    file=(f"audio.{ext}", _io.BytesIO(audio_bytes), mime_type),
                     model="saaras:v3",
                     mode="transcribe",
                     language_code=sarvam_lang,
@@ -131,7 +158,7 @@ class RubySTT:
             import io as _io
             
             recognizer = sr.Recognizer()
-            audio_file = _io.BytesIO(wav_bytes)
+            audio_file = _io.BytesIO(audio_bytes)
             
             with sr.AudioFile(audio_file) as source:
                 audio_data = recognizer.record(source)
@@ -165,7 +192,7 @@ class RubySTT:
                         role="user",
                         parts=[
                             types.Part.from_text(text="Transcribe this audio exactly. Output ONLY the transcription text and nothing else."),
-                            types.Part.from_bytes(data=wav_bytes, mime_type="audio/wav")
+                            types.Part.from_bytes(data=audio_bytes, mime_type=mime_type)
                         ],
                     ),
                 ]
@@ -199,4 +226,4 @@ class RubySTT:
             return ""
 
         wav_bytes = self._audio_to_wav_bytes(audio)
-        return self.transcribe_audio(wav_bytes)
+        return self.transcribe_audio(wav_bytes, mime_type="audio/wav")

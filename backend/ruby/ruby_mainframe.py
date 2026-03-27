@@ -19,7 +19,8 @@ from utiles.ruby_tools import (
     SarvamBatchSTTTool,
     TwilioReminderTool,
     SummarizeTextTool,
-    GhostCursorTool,
+    ghost_cursor_click,
+    schedule_meeting,
 )
 from utiles.toolbox import (
     calculator,
@@ -94,7 +95,8 @@ class Ruby:
                         SarvamBatchSTTTool(),           # NEW: Batch Speech-to-Text
                         TwilioReminderTool(),           # Twist Reminder
                         SummarizeTextTool(),            # Text Summarization Tool
-                        GhostCursorTool(),              # PyAutoGUI Ghost Cursor Action
+                        ghost_cursor_click,             # PyAutoGUI Ghost Cursor Action
+                        schedule_meeting,               # Automatically open Google Calendar events
                     ] + tools
 
         # Initialize TTS (Text-to-Speech) — uses Edge-TTS (FREE, no key)
@@ -194,13 +196,13 @@ class Ruby:
         self.ruby_state = "Idle"
         return transcript
 
-    def speech_to_respond(self, audio_bytes):
+    def speech_to_respond(self, audio_bytes, mime_type="audio/webm"):
         """
         Complete Voice-to-Voice pipeline: Audio -> Text -> AI -> Text -> Audio
         """
         # 1. Transcribe
         self.ruby_state = "Hearing You"
-        transcript = self.stt.transcribe_audio(audio_bytes)
+        transcript = self.stt.transcribe_audio(audio_bytes, mime_type=mime_type)
         if not transcript:
             return None, None, None
             
